@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>retroZen Pixel Library | Educational Bookstore, Exam Flashcards & Gemini AI</title>
+  <link rel="stylesheet" href="css/retro.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+
+  <!-- ================= 1. RETRO CRT SCANLINES & PIXEL RAIN OVERLAYS ================= -->
+  <div id="crt-overlay"></div>
+  <div id="pixel-rain-overlay">
+    <canvas id="rain-canvas"></canvas>
+  </div>
+  <div id="toast-container"></div>
+
+  <!-- ================= 2. PERSISTENT TOP BAR ================= -->
+  <header id="top-bar">
+    <div class="brand-section">
+      <button class="mobile-menu-btn" id="mobile-sidebar-toggle" title="Toggle Side Navbar">☰ MENU</button>
+      <div class="logo-badge">
+        <span class="status-dot"></span>
+        <span>retroZen // LIBRARY</span>
+      </div>
+      <div class="current-map-badge" id="current-shelf-badge">
+        🏛️ ALL BOOKS
+      </div>
+    </div>
+
+    <!-- Search Input -->
+    <div class="top-search-wrap">
+      <span>🔍</span>
+      <input
+        type="text"
+        id="book-search-input"
+        class="top-search-input"
+        placeholder="Search books, SAT/MCAT/IGCSE flashcards, Minecraft, Roblox, philosophy..."
+        autocomplete="off"
+      >
+    </div>
+
+    <!-- Right Quick Controls: Ambient Mirror + AI + Cart -->
+    <div class="right-controls">
+      <div class="sound-widget" title="Vinyl Crackle">
+        <button class="sound-toggle-btn vinyl-toggle-sync">💽 VINYL</button>
+        <input type="range" class="mini-slider vinyl-slider-sync" min="0" max="1" step="0.05" value="0.55">
+      </div>
+
+      <div class="sound-widget" title="Rain Ambience">
+        <button class="sound-toggle-btn rain-toggle-sync">🌧️ RAIN</button>
+        <input type="range" class="mini-slider rain-slider-sync" min="0" max="1" step="0.05" value="0.6">
+      </div>
+
+      <div class="music-box" title="Lo-Fi Study Beats">
+        <select class="track-select music-track-sync">
+          <option value="1">1. Shibuya</option>
+          <option value="2">2. Green Hill</option>
+          <option value="3">3. London</option>
+          <option value="4">4. Alpine</option>
+          <option value="5">5. Times Sq</option>
+          <option value="6">6. Istiklal</option>
+        </select>
+        <button class="music-btn music-toggle-sync">PLAY</button>
+        <input type="range" class="mini-slider music-slider-sync" min="0" max="1" step="0.05" value="0.65">
+      </div>
+
+      <button class="action-btn active crt-toggle-sync" title="Toggle CRT Retro Scanlines">
+        📺 CRT
+      </button>
+
+      <button class="action-btn ai-btn open-ai-trigger" title="Open Google Gemini AI Companion & Librarian">
+        🤖 GEMINI AI
+      </button>
+
+      <button class="action-btn cart-btn open-cart-trigger" title="Open Shopping Cart">
+        🛒 CART <span class="cart-count-badge">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= 3. MAIN WORKSPACE (SIDE NAVBAR + STOREFRONT) ================= -->
+  <div id="app-layout">
+
+    <!-- LEFT SIDE NAVBAR: AMBIENT STUDIO (VINYL, LO-FI BEATS, RAIN) + GENRE CATALOG TREE -->
+    <aside id="side-navbar">
+
+      <!-- A. RetroZen Ambient Sound Studio (Vinyl, Lo-Fi Beats, Rain, CRT) -->
+      <div class="sidebar-section-box ambient-studio">
+        <div class="sidebar-heading">
+          <span>🎧 RETROZEN AMBIENT BAR</span>
+          <span style="color:var(--border-cyan);">STUDIO</span>
+        </div>
+
+        <div class="sidebar-ambient-row">
+          <!-- 1. Vinyl Crackle -->
+          <div class="sidebar-sound-card">
+            <div class="sidebar-sound-top">
+              <span class="sidebar-sound-label">💽 Analog Vinyl</span>
+              <button class="sound-toggle-btn vinyl-toggle-sync">TOGGLE</button>
+            </div>
+            <div class="sidebar-slider-row">
+              <span>VOL</span>
+              <input type="range" class="sidebar-full-slider vinyl-slider-sync" min="0" max="1" step="0.05" value="0.55">
+            </div>
+          </div>
+
+          <!-- 2. Lo-Fi Beats Synthesizer -->
+          <div class="sidebar-sound-card">
+            <div class="sidebar-sound-top">
+              <span class="sidebar-sound-label">🎵 Lo-Fi Beats</span>
+              <button class="music-btn music-toggle-sync">PLAY</button>
+            </div>
+            <select class="sidebar-track-select music-track-sync" title="Choose Lo-Fi Study Track">
+              <option value="1">1. Shibuya Sunset (Lo-Fi)</option>
+              <option value="2">2. Green Hill Breeze (Chill)</option>
+              <option value="3">3. London Drizzle (Jazz)</option>
+              <option value="4">4. Alpine Solitude (Study)</option>
+              <option value="5">5. Times Sq Midnight (Beat)</option>
+              <option value="6">6. Istiklal Twilight (Zen)</option>
+            </select>
+            <div class="sidebar-slider-row">
+              <span>VOL</span>
+              <input type="range" class="sidebar-full-slider music-slider-sync" min="0" max="1" step="0.05" value="0.65">
+            </div>
+          </div>
+
+          <!-- 3. Rain Sound & Pixel Droplets -->
+          <div class="sidebar-sound-card">
+            <div class="sidebar-sound-top">
+              <span class="sidebar-sound-label">🌧️ Cozy Rain</span>
+              <button class="sound-toggle-btn rain-toggle-sync">TOGGLE</button>
+            </div>
+            <div class="sidebar-slider-row">
+              <span>VOL</span>
+              <input type="range" class="sidebar-full-slider rain-slider-sync" min="0" max="1" step="0.05" value="0.6">
+            </div>
+          </div>
+
+          <!-- 4. CRT Monitor Scanlines -->
+          <div class="sidebar-sound-top" style="padding: 4px 2px 0 2px;">
+            <span class="sidebar-sound-label" style="font-size:15px;">📺 CRT Scanlines</span>
+            <button class="action-btn active crt-toggle-sync" style="font-size:13px; padding:2px 8px;">ON / OFF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- B. Library Genres & Educational Subcategories -->
+      <div class="sidebar-section-box">
+        <div class="sidebar-heading">
+          <span>📚 LIBRARY GENRES</span>
+          <span style="color:var(--text-cyan);">SHELVES</span>
+        </div>
+        <nav id="sidebar-genre-list"></nav>
+      </div>
+
+      <!-- C. AI Librarian Quick Card -->
+      <div class="sidebar-section-box" style="border-color: var(--yellow-retro);">
+        <div class="sidebar-heading" style="margin-bottom:6px;">
+          <span>🤖 GOOGLE GEMINI AI</span>
+          <span style="color:var(--border-cyan);">LIVE</span>
+        </div>
+        <p style="font-size:15px; color:var(--text-muted); margin-bottom:8px; line-height:1.3;">
+          Ask Gemini about <strong style="color:var(--text-primary);">any topic in the universe</strong> or get custom book & exam prep advice!
+        </p>
+        <button class="add-to-cart-btn open-ai-trigger" style="width:100%;">
+          💬 CHAT WITH GEMINI AI
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT MAIN STOREFRONT AREA -->
+    <main id="main-store-view">
+
+      <!-- Hero Banner -->
+      <section class="library-hero-banner">
+        <div class="hero-left">
+          <div class="hero-eyebrow">✦ WELCOME TO RETROZEN PIXEL LIBRARY & ACADEMIC STORE ✦</div>
+          <h1 id="current-shelf-title">🏛️ ALL LIBRARY SHELVES</h1>
+          <p id="current-shelf-desc">
+            Browse the complete retroZen digital & print archive: Educational textbooks, SAT/GRE/MCAT/IGCSE/A-Level/Bar Exam Flashcard Companies, Philosophy, Story Books, Novels, and Minecraft & Roblox Game Guides!
+          </p>
+        </div>
+        <div class="hero-right-badges">
+          <div class="promo-pill">🎓 Student Code: <strong>RETROZEN20</strong> (20% OFF)</div>
+          <div style="font-size:15px; color:var(--text-muted);">🎧 Tip: Turn on Lo-Fi Beats, Vinyl & Rain in the Side Navbar!</div>
+        </div>
+      </section>
+
+      <!-- Top Genre Quick-Filter Strip & Sort Bar -->
+      <section class="filter-toolbar">
+        <div class="top-genre-pills">
+          <button class="top-genre-pill active" data-cat="all">🏛️ All Shelves</button>
+          <button class="top-genre-pill" data-cat="educational">🎓 Educational & Exams</button>
+          <button class="top-genre-pill" data-cat="philosophy">🦉 Philosophy</button>
+          <button class="top-genre-pill" data-cat="storybooks">📖 Story Books (Fic/Non-Fic)</button>
+          <button class="top-genre-pill" data-cat="novels">🌌 Novels</button>
+          <button class="top-genre-pill" data-cat="game-guides">🕹️ Game Guides (Minecraft/Roblox)</button>
+          <button class="top-genre-pill" data-cat="reference">🧭 Reference & Languages</button>
+        </div>
+
+        <div class="toolbar-right">
+          <span id="results-count-badge">36 VOLUMES FOUND</span>
+          <select id="book-sort-select" class="sort-select" title="Sort Books">
+            <option value="featured">Sort: Featured</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="rating">Highest Rated (★)</option>
+            <option value="title">Title (A–Z)</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Educational Subcategories Bar (Science, Math, History, Literature, Business, Computing, Test Guides, Exam Flashcards) -->
+      <section id="educational-subcat-bar"></section>
+
+      <!-- Books Catalog Grid -->
+      <section id="books-grid"></section>
+
+    </main>
+  </div>
+
+  <!-- ================= 4. GOOGLE GEMINI AI COMPANION & LIBRARIAN DRAWER ================= -->
+  <aside id="ai-drawer">
+    <div class="ai-header">
+      <div class="ai-title">
+        <span>🤖</span>
+        <span>GOOGLE GEMINI AI</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="ai-key-badge" id="ai-key-status-btn" title="Click to view or set Google Gemini API Key">🔑 SET KEY</button>
+        <button class="close-drawer-btn" id="close-ai-btn">✕</button>
+      </div>
+    </div>
+
+    <!-- Collapsible API Key Panel -->
+    <div class="ai-key-panel" id="ai-key-panel" style="display: none;">
+      <div class="ai-key-panel-title">🔑 CONNECT GOOGLE GEMINI API KEY</div>
+      <div class="ai-key-panel-desc">
+        Isolated via backend <code>.env</code> (`GEMINI_API_KEY`) so it never interferes with other apps. You can also paste your key from
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" style="color:var(--yellow-retro); text-decoration:underline;">Google AI Studio</a>:
+      </div>
+      <div class="ai-key-row">
+        <input type="password" id="ai-key-input" class="ai-key-input" placeholder="Paste Gemini API key..." autocomplete="off">
+        <button id="ai-key-save-btn" class="ai-key-save-btn">SAVE</button>
+      </div>
+      <div id="ai-key-msg" class="ai-key-msg"></div>
+    </div>
+
+    <!-- Chat History Body -->
+    <div class="ai-chat-body" id="ai-chat-body">
+      <div class="chat-bubble bot">
+        <span style="color:var(--yellow-retro); font-weight:bold;">Hello! I am Google Gemini.</span><br>
+        You can talk to me about <strong>anything at all</strong> — science, math problems, history, coding, philosophy, trivia, creative stories, or ask me to recommend textbooks, SAT/GRE/MCAT/IGCSE/A-Level/Bar Exam flashcards, and Minecraft/Roblox guides from our library!
+      </div>
+    </div>
+
+    <!-- Quick Prompt Chips -->
+    <div class="mood-chips-container">
+      <div class="mood-chips-label">Quick Prompts (Ask Anything or Library Tasks):</div>
+      <div class="mood-chips-grid">
+        <button class="mood-chip" data-prompt="Which flashcard companies and test guides do you recommend for SAT, GRE, MCAT, IGCSE, A-Levels, or the Bar Exam?">🗂️ Exam Flashcards</button>
+        <button class="mood-chip" data-prompt="Explain how quantum entanglement works in simple terms!">⚛️ Quantum Physics</button>
+        <button class="mood-chip" data-prompt="Recommend me the best Minecraft Redstone and Roblox Lua scripting books in the store!">🕹️ Minecraft & Roblox</button>
+        <button class="mood-chip" data-prompt="Teach me 3 powerful Stoic philosophy principles from Marcus Aurelius.">🦉 Stoic Wisdom</button>
+        <button class="mood-chip" data-prompt="Write a short Lua script for a Roblox speed boost pad and explain how it works.">💻 Roblox Lua Code</button>
+        <button class="mood-chip" data-prompt="Recommend a cozy rainy night novel with lo-fi beats and vinyl crackle!">🌧️ Cozy Novel & Vibe</button>
+      </div>
+    </div>
+
+    <!-- User Prompt Input -->
+    <div class="ai-input-box">
+      <input type="text" class="ai-input" id="ai-input" placeholder="Ask Gemini anything, or ask for book advice..." autocomplete="off">
+      <button class="ai-submit-btn" id="ai-submit-btn">SEND</button>
+    </div>
+  </aside>
+
+  <!-- ================= 5. SHOPPING CART DRAWER ================= -->
+  <aside id="cart-drawer">
+    <div class="ai-header">
+      <div class="ai-title">
+        <span>🛒</span>
+        <span>YOUR LIBRARY BAG</span>
+      </div>
+      <button class="close-drawer-btn" id="close-cart-btn">✕</button>
+    </div>
+
+    <div id="cart-items-list"></div>
+
+    <div class="cart-footer">
+      <div class="promo-box-row">
+        <input type="text" id="promo-code-input" class="promo-input" placeholder="Promo code (e.g. RETROZEN20)">
+        <button class="action-btn" id="apply-promo-btn">APPLY</button>
+      </div>
+
+      <div class="summary-row">
+        <span>Subtotal:</span>
+        <span id="cart-subtotal-val">$0.00</span>
+      </div>
+      <div class="summary-row" id="cart-discount-row" style="display:none; color:var(--border-cyan);">
+        <span>Student Discount (20%):</span>
+        <span id="cart-discount-val">-$0.00</span>
+      </div>
+      <div class="summary-row total">
+        <span>TOTAL:</span>
+        <span id="cart-total-val">$0.00</span>
+      </div>
+
+      <button class="add-to-cart-btn" id="checkout-btn" style="padding:11px; font-size:10px; margin-top:4px;">
+        ✨ [ COMPLETE LIBRARY CHECKOUT ]
+      </button>
+    </div>
+  </aside>
+
+  <!-- ================= 6. BOOK PREVIEW MODAL ================= -->
+  <div class="modal-backdrop hidden" id="book-detail-modal">
+    <div class="welcome-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #334155; padding-bottom:8px;">
+        <span style="font-family:var(--font-pixel); font-size:10px; color:var(--text-cyan);">📖 RETROZEN VOLUME INSPECTOR</span>
+        <button class="close-drawer-btn" id="close-book-modal-btn">✕</button>
+      </div>
+      <div id="book-detail-body"></div>
+    </div>
+  </div>
+
+  <!-- ================= 7. CHECKOUT RECEIPT MODAL ================= -->
+  <div class="modal-backdrop hidden" id="checkout-modal">
+    <div class="welcome-box" style="max-width:520px; text-align:center;">
+      <h2 style="font-family:var(--font-pixel); font-size:14px; color:var(--yellow-retro); margin-bottom:8px;">
+        ✦ CHECKOUT COMPLETE! ✦
+      </h2>
+      <div id="checkout-receipt-content"></div>
+      <button class="big-start-btn" id="close-checkout-modal-btn">
+        [ CONTINUE BROWSING LIBRARY ]
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= 8. SCRIPTS ================= -->
+  <script src="js/audio.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/gemini.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      window.retroLibraryApp.init();
+      window.retroGemini.init();
+
+      // Unlock Web Audio on first user interaction
+      const unlockAudio = () => {
+        if (window.retroAudio) {
+          window.retroAudio.ensureContext();
+        }
+        window.removeEventListener('pointerdown', unlockAudio);
+        window.removeEventListener('keydown', unlockAudio);
+      };
+      window.addEventListener('pointerdown', unlockAudio);
+      window.addEventListener('keydown', unlockAudio);
+
+      // Play cute arcade click on interactive buttons
+      document.addEventListener('click', (e) => {
+        const target = e.target.closest('button, select, a, .top-genre-pill, .subcat-pill');
+        if (target && !target.classList.contains('add-to-cart-btn')) {
+          if (window.retroAudio) {
+            window.retroAudio.ensureContext();
+            window.retroAudio.playArcadeClick('select');
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

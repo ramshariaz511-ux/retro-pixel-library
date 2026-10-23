@@ -1,0 +1,15 @@
+# Environment variables (contains secret GEMINI_API_KEY - never commit to GitHub!)
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Vercel deployment metadata
+.vercel/
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+*.log
