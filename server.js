@@ -1,18 +1,23 @@
 /**
- * RETROZEN PIXEL LIBRARY STORE - LOCAL DEVELOPMENT SERVER
- * Placed in scripts/dev-server.js so Vercel's root server.js auto-detector
- * serves static files (index.html, css/, js/) directly from the Vercel CDN
- * while using api/*.js for serverless endpoints.
+ * RETROZEN PIXEL LIBRARY STORE - SECURE BACKEND SERVER (LOCAL & VERCEL)
+ * Serves static web store assets and provides secure Google Gemini AI proxy routes:
+ * - POST /api/gemini
+ * - POST /api/set-key
+ * - GET  /api/status
+ *
+ * Explicitly references static assets via path.join(__dirname, ...) so Vercel's
+ * Node File Tracer (@vercel/nft) bundles all frontend assets automatically.
  */
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const ROOT_DIR = path.resolve(__dirname, '..');
-
 function loadEnvFile() {
-  const envPath = path.join(ROOT_DIR, '.env');
+  const envPath = fs.existsSync(path.join(__dirname, '.env'))
+    ? path.join(__dirname, '.env')
+    : path.join(process.cwd(), '.env');
+
   if (fs.existsSync(envPath)) {
     try {
       const content = fs.readFileSync(envPath, 'utf8');
@@ -40,6 +45,53 @@ function loadEnvFile() {
 loadEnvFile();
 
 const PORT = parseInt(process.env.PORT || '3005', 10);
+const PUBLIC_DIR = __dirname;
+
+// Explicit literal path.join(__dirname, ...) calls so Vercel @vercel/nft bundles every static file
+const STATIC_ASSET_MAP = {
+  '/': {
+    filePath: path.join(__dirname, 'index.html'),
+    contentType: 'text/html; charset=utf-8'
+  },
+  '/index.html': {
+    filePath: path.join(__dirname, 'index.html'),
+    contentType: 'text/html; charset=utf-8'
+  },
+  '/css/retro.css': {
+    filePath: path.join(__dirname, 'css', 'retro.css'),
+    contentType: 'text/css; charset=utf-8'
+  },
+  '/js/audio.js': {
+    filePath: path.join(__dirname, 'js', 'audio.js'),
+    contentType: 'application/javascript; charset=utf-8'
+  },
+  '/js/catalog.js': {
+    filePath: path.join(__dirname, 'js', 'catalog.js'),
+    contentType: 'application/javascript; charset=utf-8'
+  },
+  '/js/app.js': {
+    filePath: path.join(__dirname, 'js', 'app.js'),
+    contentType: 'application/javascript; charset=utf-8'
+  },
+  '/js/gemini.js': {
+    filePath: path.join(__dirname, 'js', 'gemini.js'),
+    contentType: 'application/javascript; charset=utf-8'
+  }
+};
+
+// Pre-trace files at module load so @vercel/nft always includes them in serverless deployment
+const BUNDLED_ASSETS = {};
+try {
+  BUNDLED_ASSETS['/index.html'] = fs.readFileSync(path.join(__dirname, 'index.html'));
+  BUNDLED_ASSETS['/'] = BUNDLED_ASSETS['/index.html'];
+  BUNDLED_ASSETS['/css/retro.css'] = fs.readFileSync(path.join(__dirname, 'css', 'retro.css'));
+  BUNDLED_ASSETS['/js/audio.js'] = fs.readFileSync(path.join(__dirname, 'js', 'audio.js'));
+  BUNDLED_ASSETS['/js/catalog.js'] = fs.readFileSync(path.join(__dirname, 'js', 'catalog.js'));
+  BUNDLED_ASSETS['/js/app.js'] = fs.readFileSync(path.join(__dirname, 'js', 'app.js'));
+  BUNDLED_ASSETS['/js/gemini.js'] = fs.readFileSync(path.join(__dirname, 'js', 'gemini.js'));
+} catch (e) {
+  console.warn('[Server] Preload warning:', e.message);
+}
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -56,13 +108,13 @@ const MIME_TYPES = {
   '.ttf': 'font/ttf'
 };
 
-const geminiHandler = require('../api/gemini');
-const setKeyHandler = require('../api/set-key');
-const statusHandler = require('../api/status');
+const geminiHandler = require('./api/gemini');
+const setKeyHandler = require('./api/set-key');
+const statusHandler = require('./api/status');
 
 function saveApiKeyToEnvFile(key) {
   process.env.GEMINI_API_KEY = key;
-  const envPath = path.join(ROOT_DIR, '.env');
+  const envPath = path.join(__dirname, '.env');
   let content = '';
   if (fs.existsSync(envPath)) {
     content = fs.readFileSync(envPath, 'utf8');
@@ -74,7 +126,9 @@ function saveApiKeyToEnvFile(key) {
   }
   try {
     fs.writeFileSync(envPath, content.trim() + '\n', 'utf8');
-  } catch (e) {}
+  } catch (e) {
+    // Ignore write error in read-only serverless environments
+  }
 }
 
 function decorateRes(res) {
@@ -139,17 +193,35 @@ const server = http.createServer(async (req, res) => {
     return statusHandler(req, res);
   }
 
-  let safePath = pathname === '/' ? '/index.html' : pathname;
-  let filePath = path.join(ROOT_DIR, safePath);
+  // 1. Serve from pre-traced static asset map if matched
+  if (STATIC_ASSET_MAP[pathname]) {
+    const entry = STATIC_ASSET_MAP[pathname];
+    if (BUNDLED_ASSETS[pathname]) {
+      res.writeHead(200, { 'Content-Type': entry.contentType });
+      return res.end(BUNDLED_ASSETS[pathname]);
+    }
+    if (fs.existsSync(entry.filePath)) {
+      res.writeHead(200, { 'Content-Type': entry.contentType });
+      return res.end(fs.readFileSync(entry.filePath));
+    }
+  }
 
-  if (!filePath.startsWith(ROOT_DIR)) {
+  // 2. Fallback static file lookup or SPA fallback to index.html
+  let safePath = pathname === '/' ? '/index.html' : pathname;
+  let filePath = path.join(PUBLIC_DIR, safePath);
+
+  if (!filePath.startsWith(PUBLIC_DIR)) {
     res.writeHead(403);
     return res.end('Forbidden');
   }
 
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
-      filePath = path.join(ROOT_DIR, 'index.html');
+      if (BUNDLED_ASSETS['/index.html']) {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        return res.end(BUNDLED_ASSETS['/index.html']);
+      }
+      filePath = path.join(PUBLIC_DIR, 'index.html');
     }
 
     const ext = path.extname(filePath).toLowerCase();
@@ -157,6 +229,10 @@ const server = http.createServer(async (req, res) => {
 
     fs.readFile(filePath, (readErr, content) => {
       if (readErr) {
+        if (BUNDLED_ASSETS['/index.html']) {
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          return res.end(BUNDLED_ASSETS['/index.html']);
+        }
         res.writeHead(500);
         return res.end('Internal Server Error');
       }
@@ -182,6 +258,7 @@ function startServer(portToTry) {
 
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
+      console.warn(`[Port ${portToTry} in use, trying ${portToTry + 1}...]`);
       startServer(portToTry + 1);
     } else {
       console.error('[Server Error]', err);
@@ -192,3 +269,5 @@ function startServer(portToTry) {
 if (require.main === module) {
   startServer(PORT);
 }
+
+module.exports = server;

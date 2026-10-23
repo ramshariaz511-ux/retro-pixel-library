@@ -2,8 +2,10 @@
   "name": "retrozen-pixel-library",
   "version": "1.0.0",
   "description": "Retro pixelated online educational library & bookstore with ambient Lo-Fi studio and Google Gemini AI",
+  "main": "server.js",
   "scripts": {
-    "start": "node scripts/dev-server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "keywords": [
     "retro-library",
