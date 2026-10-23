@@ -1,23 +1,18 @@
 /**
- * RETROZEN PIXEL LIBRARY STORE - SECURE BACKEND SERVER
- * Serves static web store assets and provides secure Google Gemini AI proxy routes:
- * - POST /api/gemini
- * - POST /api/set-key
- * - GET  /api/status
- *
- * Safely loads GEMINI_API_KEY from isolated .env / environment variables.
- * Never exposes the secret environment variable to frontend source files.
+ * RETROZEN PIXEL LIBRARY STORE - LOCAL DEVELOPMENT SERVER
+ * Placed in scripts/dev-server.js so Vercel's root server.js auto-detector
+ * serves static files (index.html, css/, js/) directly from the Vercel CDN
+ * while using api/*.js for serverless endpoints.
  */
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-function loadEnvFile() {
-  const envPath = fs.existsSync(path.join(__dirname, '.env'))
-    ? path.join(__dirname, '.env')
-    : path.join(process.cwd(), '.env');
+const ROOT_DIR = path.resolve(__dirname, '..');
 
+function loadEnvFile() {
+  const envPath = path.join(ROOT_DIR, '.env');
   if (fs.existsSync(envPath)) {
     try {
       const content = fs.readFileSync(envPath, 'utf8');
@@ -45,7 +40,6 @@ function loadEnvFile() {
 loadEnvFile();
 
 const PORT = parseInt(process.env.PORT || '3005', 10);
-const PUBLIC_DIR = __dirname;
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -62,13 +56,13 @@ const MIME_TYPES = {
   '.ttf': 'font/ttf'
 };
 
-const geminiHandler = require('./api/gemini');
-const setKeyHandler = require('./api/set-key');
-const statusHandler = require('./api/status');
+const geminiHandler = require('../api/gemini');
+const setKeyHandler = require('../api/set-key');
+const statusHandler = require('../api/status');
 
 function saveApiKeyToEnvFile(key) {
   process.env.GEMINI_API_KEY = key;
-  const envPath = path.join(__dirname, '.env');
+  const envPath = path.join(ROOT_DIR, '.env');
   let content = '';
   if (fs.existsSync(envPath)) {
     content = fs.readFileSync(envPath, 'utf8');
@@ -80,9 +74,7 @@ function saveApiKeyToEnvFile(key) {
   }
   try {
     fs.writeFileSync(envPath, content.trim() + '\n', 'utf8');
-  } catch (e) {
-    // Ignore write error in read-only serverless environments
-  }
+  } catch (e) {}
 }
 
 function decorateRes(res) {
@@ -147,18 +139,17 @@ const server = http.createServer(async (req, res) => {
     return statusHandler(req, res);
   }
 
-  // Serve static files
   let safePath = pathname === '/' ? '/index.html' : pathname;
-  let filePath = path.join(PUBLIC_DIR, safePath);
+  let filePath = path.join(ROOT_DIR, safePath);
 
-  if (!filePath.startsWith(PUBLIC_DIR)) {
+  if (!filePath.startsWith(ROOT_DIR)) {
     res.writeHead(403);
     return res.end('Forbidden');
   }
 
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
-      filePath = path.join(PUBLIC_DIR, 'index.html');
+      filePath = path.join(ROOT_DIR, 'index.html');
     }
 
     const ext = path.extname(filePath).toLowerCase();
@@ -191,7 +182,6 @@ function startServer(portToTry) {
 
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-      console.warn(`[Port ${portToTry} in use, trying ${portToTry + 1}...]`);
       startServer(portToTry + 1);
     } else {
       console.error('[Server Error]', err);
@@ -202,5 +192,3 @@ function startServer(portToTry) {
 if (require.main === module) {
   startServer(PORT);
 }
-
-module.exports = server;

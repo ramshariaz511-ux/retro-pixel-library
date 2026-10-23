@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Retro pixelated online educational library & bookstore with ambient Lo-Fi studio and Google Gemini AI",
   "scripts": {
-    "start": "node server.js"
+    "start": "node scripts/dev-server.js"
   },
   "keywords": [
     "retro-library",
